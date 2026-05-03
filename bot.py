@@ -1015,38 +1015,44 @@ async def notify_admins_of_topup(bot: Bot, request_id: int):
 
 # ─── Main entry ───────────────────────────────────────────────────────────────
 
-async def on_startup(bot: Bot):
-    # Initialize database schema
-    from init_db import init as init_db
-    await init_db()
-    
+async def on_startup_webhook(bot: Bot):
     webhook_url = os.environ["WEBHOOK_URL"]
     await bot.set_webhook(webhook_url, drop_pending_updates=True)
     logger.info(f"Webhook set: {webhook_url}")
 
 
-async def on_shutdown(bot: Bot):
+async def on_shutdown_webhook(bot: Bot):
     await bot.delete_webhook()
+    await db.close_pool()
+
+
+async def on_shutdown_polling(bot: Bot):
     await db.close_pool()
 
 
 def main():
     token = os.environ["TELEGRAM_BOT_TOKEN"]
-    webhook_path = os.environ.get("WEBHOOK_PATH", "/webhook")
-    port = int(os.environ.get("PORT", 8080))
+    webhook_url = os.environ.get("WEBHOOK_URL", "")
 
     bot = Bot(token=token, default=None)
     dp = Dispatcher()
     dp.include_router(router)
-    dp.startup.register(on_startup)
-    dp.shutdown.register(on_shutdown)
 
-    app = web.Application()
-    handler = SimpleRequestHandler(dispatcher=dp, bot=bot)
-    handler.register(app, path=webhook_path)
-    setup_application(app, dp, bot=bot)
-
-    web.run_app(app, host="0.0.0.0", port=port)
+    if webhook_url:
+        webhook_path = os.environ.get("WEBHOOK_PATH", "/webhook")
+        port = int(os.environ.get("PORT", 8080))
+        dp.startup.register(on_startup_webhook)
+        dp.shutdown.register(on_shutdown_webhook)
+        app = web.Application()
+        handler = SimpleRequestHandler(dispatcher=dp, bot=bot)
+        handler.register(app, path=webhook_path)
+        setup_application(app, dp, bot=bot)
+        logger.info(f"Starting in WEBHOOK mode on port {port}")
+        web.run_app(app, host="0.0.0.0", port=port)
+    else:
+        dp.shutdown.register(on_shutdown_polling)
+        logger.info("Starting in POLLING mode")
+        asyncio.run(dp.start_polling(bot, drop_pending_updates=True))
 
 
 if __name__ == "__main__":
