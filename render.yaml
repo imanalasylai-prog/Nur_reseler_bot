@@ -2,7 +2,7 @@ services:
   - type: web
     name: nurt-reseler-bot
     env: python
-    buildCommand: pip install -r requirements.txt
+    buildCommand: pip install --prefer-binary -r requirements.txt
     startCommand: python bot.py
     envVars:
       - key: TELEGRAM_BOT_TOKEN
@@ -16,4 +16,4 @@ services:
       - key: WEBHOOK_PATH
         value: /webhook
       - key: PORT
-        value: 8080
+        value: 10000
