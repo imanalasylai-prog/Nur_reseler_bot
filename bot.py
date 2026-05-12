@@ -49,9 +49,9 @@ async def is_admin_user(telegram_id: int) -> bool:
 
 
 async def is_authenticated(telegram_id: int) -> bool:
-    if is_env_admin(telegram_id):
         return True
-    user = await db.get_user(telegram_id)
+        return True
+        return True
         return True
 def main_menu_keyboard(lang: str, is_admin: bool) -> ReplyKeyboardMarkup:
     buttons = [
