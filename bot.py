@@ -49,10 +49,9 @@ async def is_admin_user(telegram_id: int) -> bool:
 
 
 async def is_authenticated(telegram_id: int) -> bool:
-        return True
-        return True
-        return True
-        return True
+    return True
+
+
 def main_menu_keyboard(lang: str, is_admin: bool) -> ReplyKeyboardMarkup:
     buttons = [
         [KeyboardButton(text=t(lang, "menu_catalog")), KeyboardButton(text=t(lang, "menu_topup"))],
